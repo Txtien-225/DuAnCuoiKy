@@ -44,14 +44,12 @@ public class QLKHController implements Action{
 			this.view.hienThiAbout();
 		}else if(cm.equals("Exit")) {
 			this.view.thoatKhoiChuongTrinh();
-		}else if(cm.equals("Save")) {
-			this.view.thucHienSaveFile();
-		}else if(cm.equals("Open")) {
-			this.view.thucHienOpenFile();
 		}else if(cm.equals("Đăng Xuất")) {
 			this.view.thucHienDangXuat();
 		}else if(cm.equals("Thống Kê")) {
 			this.view.ThongKe();
+		}else if(cm.equals("Cập Nhật")){
+			this.view.thucHienHuyTim();
 		}
 		
 		

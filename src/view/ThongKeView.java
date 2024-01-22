@@ -90,14 +90,6 @@ public class ThongKeView extends JFrame {
 		menuFile.setFont(new Font("Segoe UI", Font.PLAIN, 20));
 		menuBar.add(menuFile);
 
-		JMenuItem menuOpen = new JMenuItem("Open");
-		menuOpen.setFont(new Font("Segoe UI", Font.PLAIN, 18));
-		menuFile.add(menuOpen);
-
-		JMenuItem menuSave = new JMenuItem("Save");
-		menuSave.setFont(new Font("Segoe UI", Font.PLAIN, 18));
-		menuFile.add(menuSave);
-
 		JSeparator separator = new JSeparator();
 		menuFile.add(separator);
 

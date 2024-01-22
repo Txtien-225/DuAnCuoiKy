@@ -94,6 +94,7 @@ public class QLKHView<Int> extends JFrame {
 	private JButton btnThongKe;
 	private JButton btnDangxuat;
 	private AbstractButton btnSua;
+	private JButton btnCapNhat;
 
 	public QLKHView() {
 		setTitle("Trang Chủ");
@@ -112,16 +113,6 @@ public class QLKHView<Int> extends JFrame {
 		JMenu menuFile = new JMenu("File");
 		menuFile.setFont(new Font("Segoe UI", Font.PLAIN, 20));
 		menuBar.add(menuFile);
-
-		JMenuItem menuOpen = new JMenuItem("Open");
-		menuOpen.addActionListener(action);
-		menuOpen.setFont(new Font("Segoe UI", Font.PLAIN, 18));
-		menuFile.add(menuOpen);
-
-		JMenuItem menuSave = new JMenuItem("Save");
-		menuSave.addActionListener(action);
-		menuSave.setFont(new Font("Segoe UI", Font.PLAIN, 18));
-		menuFile.add(menuSave);
 
 		JSeparator separator = new JSeparator();
 		menuFile.add(separator);
@@ -209,7 +200,7 @@ public class QLKHView<Int> extends JFrame {
 				new ImageIcon(Toolkit.getDefaultToolkit().createImage(QLKHView.class.getResource("icon_save.png"))));
 		btnLuu.setForeground(new Color(0, 128, 0));
 		btnLuu.setBackground(new Color(0, 100, 0));
-		btnLuu.setBounds(450, 25, 122, 42);
+		btnLuu.setBounds(350, 25, 122, 42);
 		panel.add(btnLuu);
 		btnLuu.addActionListener(action);
 		btnLuu.setFont(new Font("Tahoma", Font.PLAIN, 18));
@@ -219,7 +210,7 @@ public class QLKHView<Int> extends JFrame {
 				new ImageIcon(Toolkit.getDefaultToolkit().createImage(QLKHView.class.getResource("icon_suachua.png"))));
 		btnSua.setForeground(new Color(0, 100, 0));
 		btnSua.setBackground(new Color(0, 100, 0));
-		btnSua.setBounds(681, 25, 122, 42);
+		btnSua.setBounds(520, 25, 122, 42);
 		panel.add(btnSua);
 		btnSua.addActionListener(action);
 		btnSua.setFont(new Font("Tahoma", Font.PLAIN, 18));
@@ -239,10 +230,20 @@ public class QLKHView<Int> extends JFrame {
 				new ImageIcon(Toolkit.getDefaultToolkit().createImage(QLKHView.class.getResource("icon_delete.png"))));
 		btnXoa.setForeground(new Color(0, 100, 0));
 		btnXoa.setBackground(new Color(0, 100, 0));
-		btnXoa.setBounds(225, 25, 122, 42);
+		btnXoa.setBounds(190, 25, 122, 42);
 		panel.add(btnXoa);
 		btnXoa.addActionListener(action);
 		btnXoa.setFont(new Font("Tahoma", Font.PLAIN, 18));
+
+		btnCapNhat = new JButton("Cập Nhật");
+		btnCapNhat.setIcon(
+				new ImageIcon(Toolkit.getDefaultToolkit().createImage(QLKHView.class.getResource("icon_update.png"))));
+		btnCapNhat.setForeground(new Color(0, 100, 0));
+		btnCapNhat.setBackground(new Color(0, 100, 0));
+		btnCapNhat.setBounds(681, 25, 122, 42);
+		panel.add(btnCapNhat);
+		btnCapNhat.addActionListener(action);
+		btnCapNhat.setFont(new Font("Tahoma", Font.PLAIN, 18));
 
 		JPanel panel_1 = new JPanel();
 		panel_1.setBackground(new Color(211, 211, 211));
@@ -598,16 +599,48 @@ public class QLKHView<Int> extends JFrame {
 	}
 
 	public void thucHienXoa() {
-		DefaultTableModel model_table = (DefaultTableModel) table.getModel();
-		int i_row = table.getSelectedRow();
-		int luaChon = JOptionPane.showConfirmDialog(this, "Bạn có chắn chắn xóa dòng đã chọn?");
-		if (luaChon == JOptionPane.YES_OPTION) {
-			KhachHang ts = getKhachHangDangChon();
-			this.model.delete(ts);
-			model_table.removeRow(i_row);
-		}
+	    DefaultTableModel model_table = (DefaultTableModel) table.getModel();
+	    int i_row = table.getSelectedRow();
 
+	    // Kiểm tra xem đã chọn dòng nào chưa
+	    if (i_row == -1) {
+	        JOptionPane.showMessageDialog(this, "Vui lòng chọn một dòng để xóa.");
+	        return;
+	    }
+
+	    int luaChon = JOptionPane.showConfirmDialog(this, "Bạn có chắn chắn xóa dòng đã chọn?");
+	    if (luaChon == JOptionPane.YES_OPTION) {
+	        try {
+	            // Lấy thông tin từ dòng đã chọn
+	            String maKhachHang = (String) model_table.getValueAt(i_row, 0);
+
+	            // Kết nối CSDL
+	            Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/swing_demo", "root", "");
+
+	            // Tạo Prepared Statement
+	            String sql = "DELETE FROM khachhang WHERE ma_khach_hang = ?";
+	            PreparedStatement st = connection.prepareStatement(sql);
+
+	            // Thiết lập giá trị cho tham số
+	            st.setString(1, maKhachHang);
+
+	            // Thực hiện xóa dữ liệu
+	            st.executeUpdate();
+
+	            // Cập nhật model_table và bảng hiển thị sau khi xóa
+	            model_table.removeRow(i_row);
+	            JOptionPane.showMessageDialog(this, "Xóa dữ liệu thành công.");
+
+	            // Đóng PreparedStatement
+	            st.close();
+	        } catch (SQLException e) {
+	            e.printStackTrace();
+	            JOptionPane.showMessageDialog(this, "Lỗi khi xóa dữ liệu: " + e.getMessage());
+	        }
+	    }
 	}
+
+
 
 	public void thucHienThemKhachHang() {
 		// Get du lieu
@@ -629,73 +662,92 @@ public class QLKHView<Int> extends JFrame {
 	}
 
 	public void thucHienTim() {
-	    String tenKhachHang = this.textField_HoVaTen.getText();
-	    String maKhachHang = this.textField_MaKhachHang_TimKiem.getText();
-	    boolean found = false;
+	    model_table.setRowCount(0);
+	    model_table.fireTableDataChanged();
 
 	    try {
 	        Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/swing_demo", "root", "");
 
-	        if (tenKhachHang.length() > 0 && maKhachHang.length() > 0) {
+	        if (!textField_hoTen_TimKiem.getText().isEmpty() && !textField_MaKhachHang_TimKiem.getText().isEmpty()) {
 	            try {
-	                String sql = "SELECT * FROM khachhang WHERE ten_khach_hang=? AND ma_khach_hang=?";
-	                PreparedStatement pstmt = connection.prepareStatement(sql);
-	                pstmt.setString(1, tenKhachHang);
-	                pstmt.setString(2, maKhachHang);
+	                String sql1 = "SELECT * FROM khachhang WHERE ten_khach_hang = '" + textField_hoTen_TimKiem.getText() + "' AND ma_khach_hang = '" + textField_MaKhachHang_TimKiem.getText() + "';";
+	                Statement st1 = connection.createStatement();
+	                ResultSet rs = st1.executeQuery(sql1);
+	                while (rs.next()) {
+	                    String ma_khach_hang = rs.getString("ma_khach_hang");
+	                    String ten_khach_hang = rs.getString("ten_khach_hang");
+	                    String quequan = rs.getString("que_quan");
+	                    String ngaysinh = rs.getString("ngay_sinh");
+	                    String chu_thich = rs.getString("chu_Thich");
+	                    String goi_data = rs.getString("goi_Data");
+	                    String dung_luong_data = rs.getString("dung_luong_data");
+	                    String tiencuoc = rs.getString("tien_cuoc");
+	                    String han_su_dung = rs.getString("han_su_dung");
+	                    String sodt = rs.getString("so_dt");
 
-	                ResultSet rs = pstmt.executeQuery();
-
-	                if (rs.next()) {
-	                    found = true;
-
-	                    // Assuming you have declared model_table earlier in your code
-	                    model_table.addRow(new Object[] { 
-	                        rs.getString("ma_khach_hang"), 
-	                        rs.getString("ten_khach_hang"),
-	                        rs.getString("quequan"), 
-	                        rs.getString("ngaysinh"), 
-	                        rs.getString("chu_thich"),
-	                        rs.getString("goi_data"), 
-	                        rs.getString("dung_luong_data"), 
-	                        rs.getString("tiencuoc"),
-	                        rs.getString("han_su_dung"), 
-	                        rs.getString("sodt") 
-	                    });
+	                    // Add fetched data to the table model without resetting it
+	                    model_table.addRow(new Object[] { ma_khach_hang, ten_khach_hang, quequan, ngaysinh, chu_thich, goi_data,
+	                            dung_luong_data, tiencuoc, han_su_dung, sodt });
 	                }
-
 	            } catch (SQLException e1) {
 	                e1.printStackTrace();
+	                System.out.println("Error executing SQL query for hoTen: " + e1.getMessage());
 	            }
+	        } else if (!textField_MaKhachHang_TimKiem.getText().isEmpty()) {
+	            try {
+	                String sql1 = "SELECT * FROM khachhang WHERE ma_khach_hang = '" + textField_MaKhachHang_TimKiem.getText() + "';";
+	                Statement st1 = connection.createStatement();
+	                ResultSet rs = st1.executeQuery(sql1);
+	                while (rs.next()) {
+	                    String ma_khach_hang = rs.getString("ma_khach_hang");
+	                    String ten_khach_hang = rs.getString("ten_khach_hang");
+	                    String quequan = rs.getString("que_quan");
+	                    String ngaysinh = rs.getString("ngay_sinh");
+	                    String chu_thich = rs.getString("chu_Thich");
+	                    String goi_data = rs.getString("goi_Data");
+	                    String dung_luong_data = rs.getString("dung_luong_data");
+	                    String tiencuoc = rs.getString("tien_cuoc");
+	                    String han_su_dung = rs.getString("han_su_dung");
+	                    String sodt = rs.getString("so_dt");
 
-	            if (found) {
-	                JOptionPane.showMessageDialog(null, "Tìm Kiếm Thành Công", "Thông báo",
-	                        JOptionPane.INFORMATION_MESSAGE);
-	            } else {
-	                JOptionPane.showMessageDialog(null, "Không tìm thấy khách hàng", "Thông báo",
-	                        JOptionPane.ERROR_MESSAGE);
+	                    // Add fetched data to the table model without resetting it
+	                    model_table.addRow(new Object[] { ma_khach_hang, ten_khach_hang, quequan, ngaysinh, chu_thich, goi_data,
+	                            dung_luong_data, tiencuoc, han_su_dung, sodt });
+	                }
+	            } catch (SQLException e1) {
+	                e1.printStackTrace();
+	                System.out.println("Error executing SQL query for MaKhachHang: " + e1.getMessage());
+	            }
+	        } else if (!textField_hoTen_TimKiem.getText().isEmpty()){
+	            try {
+	                String sql1 = "SELECT * FROM khachhang WHERE ten_khach_hang = '" + textField_hoTen_TimKiem.getText() + "';";
+	                Statement st1 = connection.createStatement();
+	                ResultSet rs = st1.executeQuery(sql1);
+	                while (rs.next()) {
+	                    String ma_khach_hang = rs.getString("ma_khach_hang");
+	                    String ten_khach_hang = rs.getString("ten_khach_hang");
+	                    String quequan = rs.getString("que_quan");
+	                    String ngaysinh = rs.getString("ngay_sinh");
+	                    String chu_thich = rs.getString("chu_Thich");
+	                    String goi_data = rs.getString("goi_Data");
+	                    String dung_luong_data = rs.getString("dung_luong_data");
+	                    String tiencuoc = rs.getString("tien_cuoc");
+	                    String han_su_dung = rs.getString("han_su_dung");
+	                    String sodt = rs.getString("so_dt");
+
+	                    // Add fetched data to the table model without resetting it
+	                    model_table.addRow(new Object[] { ma_khach_hang, ten_khach_hang, quequan, ngaysinh, chu_thich, goi_data,
+	                            dung_luong_data, tiencuoc, han_su_dung, sodt });
+	                }
+	            } catch (SQLException e1) {
+	                e1.printStackTrace();
+	                System.out.println("Error executing SQL query for else case: " + e1.getMessage());
 	            }
 	        }
-	    } catch (SQLException e) {
-	        e.printStackTrace();
+	    } catch (SQLException e1) {
+	        e1.printStackTrace();
+	        System.out.println("Error connecting to the database: " + e1.getMessage());
 	    }
-	}
-
-	public void thucHienTaiLaiDuLieu() {
-		while (true) {
-			DefaultTableModel model_table = (DefaultTableModel) table.getModel();
-			int soLuongDong = model_table.getRowCount();
-			if (soLuongDong == 0)
-				break;
-			else
-				try {
-					model_table.removeRow(0);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-		}
-		for (KhachHang kh : this.model.getDsKhachHang()) {
-			this.themKhachHangVaoTable(kh);
-		}
 	}
 
 	public void hienThiAbout() {
@@ -708,61 +760,6 @@ public class QLKHView<Int> extends JFrame {
 		if (luaChon == JOptionPane.YES_OPTION) {
 			System.exit(0);
 		}
-	}
-
-	public void saveFile(String path) {
-		try {
-			this.model.setTenFile(path);
-			FileOutputStream fos = new FileOutputStream(path);
-			ObjectOutputStream oos = new ObjectOutputStream(fos);
-			for (KhachHang kh : this.model.getDsKhachHang()) {
-				oos.writeObject(kh);
-			}
-			oos.close();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	public void thucHienSaveFile() {
-		if (this.model.getTenFile().length() > 0) {
-			saveFile(this.model.getTenFile());
-		} else {
-			JFileChooser fc = new JFileChooser();
-			int returnVal = fc.showSaveDialog(this);
-			if (returnVal == JFileChooser.APPROVE_OPTION) {
-				File file = fc.getSelectedFile();
-				saveFile(file.getAbsolutePath());
-			}
-		}
-	}
-
-	public void openFile(File file) {
-		ArrayList ds = new ArrayList();
-		try {
-			this.model.setTenFile(file.getAbsolutePath());
-			FileInputStream fis = new FileInputStream(file);
-			ObjectInputStream ois = new ObjectInputStream(fis);
-			KhachHang kh = null;
-			while ((kh = (KhachHang) ois.readObject()) != null) {
-				ds.add(kh);
-			}
-			ois.close();
-		} catch (Exception e) {
-			System.out.println(e.getMessage());
-		}
-		this.model.setDsKhachHang(ds);
-	}
-
-	public void thucHienOpenFile() {
-		JFileChooser fc = new JFileChooser();
-		int returnVal = fc.showOpenDialog(this);
-		if (returnVal == JFileChooser.APPROVE_OPTION) {
-			File file = fc.getSelectedFile();
-			openFile(file);
-			thucHienTaiLaiDuLieu();
-		}
-
 	}
 
 	public void thucHienDangXuat() {
@@ -778,6 +775,52 @@ public class QLKHView<Int> extends JFrame {
 	public void ThongKe() {
 		ThongKeView tk = new ThongKeView();
 		dispose();
+	}
+
+	public void thucHienHuyTim() {
+		try {
+			// Bước 1 : Tạo kết nối CSDL
+			Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/swing_demo", "root", "");
+
+			// Bước 2 : tạo ra đối tượng statement
+
+			String sql = "SELECT * FROM khachhang Where ma_khach_hang ";
+			PreparedStatement pst = connection.prepareStatement(sql);
+
+			// Bước 3 : thực thi câu lệnh SQL
+			System.out.println(sql);
+			ResultSet rs = pst.executeQuery();
+
+			// Clear the table model outside the loop
+			model_table.setRowCount(0); // Clear previous data
+			model_table.fireTableDataChanged();
+
+			// Bước 4 : Iterate through the ResultSet and add rows to the table model
+			while (rs.next()) {
+				String ma_khach_hang = rs.getString("ma_khach_hang");
+				String ten_khach_hang = rs.getString("ten_khach_hang");
+				String quequan = rs.getString("que_quan");
+				String ngaysinh = rs.getString("ngay_sinh");
+				String chu_thich = rs.getString("chu_Thich");
+				String goi_data = rs.getString("goi_Data");
+				String dung_luong_data = rs.getString("dung_luong_data");
+				String tiencuoc = rs.getString("tien_cuoc");
+				String han_su_dung = rs.getString("han_su_dung");
+				String sodt = rs.getString("so_dt");
+
+				// Add fetched data to the table model without resetting it
+				model_table.addRow(new Object[] { ma_khach_hang, ten_khach_hang, quequan, ngaysinh, chu_thich, goi_data,
+						dung_luong_data, tiencuoc, han_su_dung, sodt });
+			}
+
+			// Close ResultSet, Statement, and Connection when done
+			rs.close();
+			connection.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		// TODO Auto-generated method stub
+
 	}
 
 }
